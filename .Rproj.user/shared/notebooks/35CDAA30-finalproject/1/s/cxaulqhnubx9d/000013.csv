@@ -1,0 +1,2 @@
+"0","names(incomeByLoc)[names(incomeByLoc) == ""ID.Geography""] <- ""geo_id"""
+"0","head(incomeByLoc)"

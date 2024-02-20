@@ -1,0 +1,8 @@
+"0","#one new categorical variable"
+"0","covidIncome <- covidIncome %>% mutate(State = substr(Geography, nchar(Geography) - 1, nchar(Geography)))"
+"0",""
+"0","#one new continuous/numerical variable"
+"0","covidIncome <- covidIncome %>% mutate(case_per_Income.by.race = case_count / Household.Income.by.Race)"
+"0","#for every unit (1) of increase in household income, there's an"
+"0","# additional x cases"
+"0","head(covidIncome)"

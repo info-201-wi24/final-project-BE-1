@@ -1,0 +1,85 @@
+---
+title: "info201"
+output: html_document
+date: "2024-02-20"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+```{r cars}
+# install.packages("openxlsx")
+library(openxlsx)
+
+covidData <- read.xlsx("COVID-19_DATA_CENSUS_TRACK.xlsx")
+incomeByLoc <- read.csv("Income_by_Location_10.csv")
+```
+```{r}
+# View(covidData)
+# View(incomeByLoc)
+```
+```{r}
+names(incomeByLoc)[names(incomeByLoc) == "ID.Geography"] <- "geo_id"
+head(incomeByLoc)
+```
+
+```{r}
+library(dplyr)
+#match the geography id
+incomeByLoc <- incomeByLoc %>%
+  mutate(geo_id = substr(geo_id, 6, nchar(geo_id)),  
+         geo_id = gsub("\\D", "", geo_id)) 
+
+# Print the result
+head(incomeByLoc)
+
+
+```
+
+```{r}
+head(incomeByLoc)
+incomeByLoc <- incomeByLoc %>% filter(Year == 2020)
+head(covidData)
+covidIncome <- left_join(incomeByLoc, covidData, by = "geo_id")
+head(covidIncome)
+```
+
+```{r}
+#one new categorical variable
+covidIncome <- covidIncome %>% mutate(State = substr(Geography, nchar(Geography) - 1, nchar(Geography)))
+
+#one new continuous/numerical variable
+covidIncome <- covidIncome %>% mutate(case_per_Income.by.race = case_count / Household.Income.by.Race)
+#for every unit (1) of increase in household income, there's an
+# additional x cases
+head(covidIncome)
+
+
+
+```
+
+```{r}
+library(dplyr)
+
+#one summarization data frame 
+breaks <- c(0, 100000, 150000, Inf)
+groupings <- c("low", "medium", "high")
+
+covidIncome <- covidIncome %>%
+  mutate(group_of_income = cut(Household.Income.by.Race, breaks = breaks, labels = groupings, include.lowest = TRUE))
+
+# Group by income group and calculate the average case count
+incomeCaseRelationship <- covidIncome %>%
+  group_by(group_of_income) %>%
+  summarise(avg_case_count = mean(case_count, na.rm = TRUE))
+
+head(incomeCaseRelationship)
+
+```

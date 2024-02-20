@@ -1,0 +1,8 @@
+"0","library(dplyr)"
+"0","#match the geography id"
+"0","incomeByLoc <- incomeByLoc %>%"
+"0","  mutate(geo_id = substr(geo_id, 6, nchar(geo_id)),  "
+"0","         geo_id = gsub(""\\D"", """", geo_id)) "
+"0",""
+"0","# Print the result"
+"0","head(incomeByLoc)"

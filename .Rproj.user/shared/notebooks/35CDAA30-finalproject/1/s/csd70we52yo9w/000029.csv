@@ -1,0 +1,2 @@
+"0","incomeByLoc <- incomeByLoc %>% filter(Year == 2020)"
+"0","head(covidData)"

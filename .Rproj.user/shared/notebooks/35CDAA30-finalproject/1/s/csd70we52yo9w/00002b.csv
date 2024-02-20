@@ -1,0 +1,2 @@
+"0","covidIncome <- left_join(incomeByLoc, covidData, by = ""geo_id"")"
+"0","head(covidIncome)"
