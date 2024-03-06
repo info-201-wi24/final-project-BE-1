@@ -4,7 +4,7 @@ library(dplyr)
 
 # read csv
 df <- read.csv("https://github.com/info-201-wi24/final-project-BE-1/raw/main/cleaned_dataframe.csv")
-  
+
 server <- function(input, output){
   
   output$income_plot1 <- renderPlotly({
@@ -48,43 +48,18 @@ server <- function(input, output){
              hovermode = "closest")
   })
   
-  output$income_hosp_count <- renderPlotly({
-    # Adjusting for "All" option in Year and Income Level
+  # VIZ 3: Income vs. Measure (Case, Hospitalization, or Death Counts)
+  output$income_measure_count <- renderPlotly({
     filtered_df <- df %>%
-      filter((Year == input$selectYearViz1 | input$selectYearViz1 == "All"),
-             (Income_Level == input$selectIncomeLevelViz1 | input$selectIncomeLevelViz1 == "All"))
+      filter((Year == input$selectYearViz3 | input$selectYearViz3 == "All"),
+             (Income_Level == input$selectIncomeLevelViz3 | input$selectIncomeLevelViz3 == "All"))
     
-    # When "All" is selected for Income Level, plot each level in different colors
-    if (input$selectIncomeLevelViz1 == "All") {
-      p <- plot_ly()
-      income_levels <- unique(df$Income_Level)
-      
-      # Loop through each income level and add to the plot
-      for (level in income_levels) {
-        level_df <- filtered_df %>% filter(Income_Level == level)
-        p <- add_trace(p, data = level_df, x = ~Income, y = ~hosp_count, type = 'scatter', mode = 'markers',
-                       marker = list(size = 10),
-                       name = level, # Name used in legend
-                       hoverinfo = 'text',
-                       text = ~paste('Income:', Income, '<br>Hospitalization Count:', hosp_count))
-      }
-      
-      p <- layout(p, title = 'Income vs. Hospitalization Counts',
-                  xaxis = list(title = 'Income'),
-                  yaxis = list(title = 'Hospitalization Count'),
-                  showlegend = TRUE)
-    } else {
-      # For specific income level selection
-      p <- plot_ly(data = filtered_df, x = ~Income, y = ~hosp_count, type = 'scatter', mode = 'markers',
-                   marker = list(size = 10),
-                   hoverinfo = 'text',
-                   text = ~paste('Income:', Income, '<br>Hospitalization Count:', hosp_count)) %>%
-        layout(title = 'Income vs. Hospitalization Counts',
-               xaxis = list(title = 'Income'),
-               yaxis = list(title = 'Hospitalization Count'))
-    }
+    measure <- input$selectMeasure
+    p <- ggplot(filtered_df, aes_string(x = "Income", y = measure, color = "Income_Level")) +
+      geom_point() +
+      labs(title = paste('Income vs.', measure), x = 'Income', y = measure)
     
-    p # Return the plot
-  })  
-  
+    ggplotly(p)
+  })
 }
+  
