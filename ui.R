@@ -146,7 +146,7 @@ It can be concluded that there appears to be a socioeconomic disparity in the he
 
 
 # overall UI navbar
-ui <- navbarPage("COVID-19 Case Numbers and Income Levels",
+ui <- navbarPage("COVID-19 Data and Income Levels in King County",
   overview_tab,
   viz_1_tab,
   viz_2_tab,
