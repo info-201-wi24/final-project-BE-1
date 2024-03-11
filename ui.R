@@ -2,6 +2,7 @@ library(ggplot2)
 library(plotly)
 
 library(bslib)
+library(markdown)
 
 # read csv
 df <- read.csv("https://github.com/info-201-wi24/final-project-BE-1/raw/main/cleaned_dataframe.csv")
@@ -12,7 +13,13 @@ df <- read.csv("https://github.com/info-201-wi24/final-project-BE-1/raw/main/cle
 overview_tab <- tabPanel("Project Overview",
    h1("An Overview of Our Project"),
    includeMarkdown("Project Overview.txt"),
-   img(src="covid-income.jpeg")
+   img(src="covid-income.jpeg"),
+   fluidRow(
+     url <- a("Covid Case Data", href="https://kingcounty.gov/en/dept/dph/health-safety/disease-illness/covid-19/data/download"),
+   ),
+   fluidRow(
+     url <- a("Income Data", href="https://datausa.io/profile/geo/king-county-wa#housing", allign = "left")
+   )
 )
 
 ## VIZ 1 TAB INFO
@@ -26,7 +33,7 @@ viz_1_sidebar <- sidebarPanel(
     inputId = "viz_1_select",
     label = "choose income level",
     choices = income_level,
-    selected = "Low"
+    selected = "High"
   )
 )
 
@@ -75,62 +82,71 @@ ui <- fluidPage(
 )
 ## VIZ 3 TAB INFO
 
-hosp_death_by_income <- renderPlotly({
-  filtered_df <- df %>% 
-    filter(Year == input$selectYearViz2, 
-           Race == input$selectRaceViz2)
-  
-  plot_ly(filtered_df) %>%
-    add_trace(x = ~Income_Level, y = ~hosp_count, type = 'bar', name = 'Hospitalizations',
-              marker = list(color = 'rgba(50, 171, 96, 0.7)',
-                            line = list(color = 'rgba(50, 171, 96, 1.0)', width = 2))) %>%
-    add_trace(x = ~Income_Level, y = ~death_count, type = 'bar', name = 'Deaths',
-              marker = list(color = 'rgba(219, 64, 82, 0.7)',
-                            line = list(color = 'rgba(219, 64, 82, 1.0)', width = 2))) %>%
-    layout(title = 'Hospitalization and Death Count by Income Level',
-           barmode = 'group',
-           xaxis = list(title = 'Income Level'),
-           yaxis = list(title = 'Count'))
-})
+viz_3_sidebar <- sidebarPanel(
+  h2("Options"),
+  selectInput("selectYearViz3", "Select Year", choices = c("All", unique(df$Year))),
+  selectInput("selectIncomeLevelViz3", "Select Income Level", choices = c("All",unique(df$Income_Level))),
+  selectInput("selectMeasure", "Select Measure", choices = c("case_count", "hosp_count", "death_count"))
+)
+
+viz_3_main_panel <- mainPanel(
+  h2("Income vs. Selected Measure"),
+  plotlyOutput(outputId = "income_measure_count", height = "800px") 
+)
+
+viz_3_tab <- tabPanel("Income vs. Measure",
+                      sidebarLayout(
+                        viz_3_sidebar,
+                        viz_3_main_panel
+                      )
+)
+
 ## CONCLUSIONS TAB INFO
 
-conclusion_tab <- tabPanel("Conclusion Tab Title",
-                           h1("Disclaimer"),
-                           p("To start the conclusion, it’s necessary to acknowledge that the data lacks
- cases that fit into our low income level (less than $20000 yearly). There’s 
- only one case that fulfills the standard. Hence, we only are going to classify 
- the income level into medium and high. 
+conclusion_tab <- tabPanel("Conclusion",
+                           h2("Limitation of Our Dataset"),
+                           p("To start the conclusion, it is necessary to acknowledge that our data set lacks cases that fit into our low-income level (less than $20000 yearly) —— there is only one row that fulfills the standard. Hence, we will mainly look at the medium and high-income level data for analysis. 
+In addition, the data visualization shows that most cases are detected in 2019 while 2020 is often known to be the peak of COVID cases number. So we also want to recognize this limitation of our data set that it could be lacking data for 2020 and 2021. We strived to address this, but we lack the capital resources to do the survey ourselves, and the data set we are using is the best data we can obtain.  
 
-In addition, there’s a limitation on the data sourcing. We want to acknowledge 
-that there might be an issue with the data. The data shows that most cases 
-are detected in 2019 while 2020 often is known to be the peak of the number
-of COVID cases. We strived to address this, but we lack capital resources to 
-do the survey ourselves, and we’ve spent 2 weeks finding data for this project.
-The best data we can obtain is the data set we’re using.  
 "),
+                      
                            h2("First Takeaway"),
-                           p("In the first graph, there are years with an increment of half a year from
-   2019 to 2021 for the x axis. As for the y-axis, there’s the total case count.
-   We make 3 graphs, in addition, for low, medium, and high income levels.
-   Hence, the graphs compare the total case count over years for different 
-   income levels. From the graphs, we can infer that there’s a similarity 
-   between the income levels. For both medium income level ($20000 to $50000)
-   and that of high (more than $50000), the drop in cases is steeper throughout
-   2019-2020 than throughout 2020-2021. Also, both income levels show a 
-   decreasing trend."),
-                           h3("Second Takeaway"),
-                           p("In the second graph, the x-axis is the yearly household income while the 
-   y-axis is the total case count. This’s similar to the first graph, but we 
-   switched the x-axis to the income. We also make 3 graphs, which correspond
-   to different years. Also, the data point is by region. The first observation 
-   is that there seems to be a shape of triangle in all years. We can infer that
-   the case count has more spread for lower income than for higher household 
-   income with the higher income tend to have less case count.")
+                           p("In our first visualization, the x-axis is the yearly household income, and the y-axis is the total COVID case count in that selected year. The input that users can select to change is income level (low = < $20000, medium = $20000 ~ $50000, high = > $50000). The three graphs compare the total case count over years for each income level selected. These graphs (medium and high income) show a decreasing trend and both have a significant drop in cases from 2019 to 2020. Another thing to note is the difference in the scales of the y-axis —— total case count over years for high income has a y-axis(case count) range from 350000 to 500000, while the one for medium income ranges from 15000 to 30000. This suggests that the number of COVID cases is much higher in groups classified as high income level. Again, this could be a limitation of our data source. 
+This visualization tab could serve as background information for our analysis, as it mainly suggests that total case count is decreasing for all income levels during the year 2019-2021.
+"),
+                           
+                           h2("Second Takeaway"),
+                           p("In our second visualization, the x-axis is the yearly household income, and the y-axis is the total COVID case count in that selected year. Each data point represents an individual row of data by region. The overall trend of this visualization shows a right-skewed distribution, meaning that there are more COVID cases in the relatively lower-income end. And this observation applies to all three years (2019-2021). Since lower income is associated with fewer cases and higher income is associated with more cases, an inverse relationship can be found between income levels and negative health outcomes.
+"),
+                           
+                           
+                           h2("Third Takeaway"),
+                           p("In our third visualization, the x-axis is the yearly income in dollars, and the y-axis is the {case_count, hosp_count, and/or death_count}. This tab integrates our data into one visualization and lets us compare the different measurements of health outcomes. To explain in detail: case_count is the number of cases; hosp_count is the number of people who are hospitalized; death_count is the number of people who die due to COVID, all corresponding to the chosen income level. Each data point represents a region’s data. 
+Higher income is associated with lower case count/other measures. This trend is accurately represented in all years (2019, 2020, 2021) and all measurements (death_count, hosp_count, and case_count). The measures (case/hosp/death) count is more spread out for lower income levels and has less correlation with income; they are more concentrated for the high income level and show a clearer negative correlation. It suggests that not only do case count and income have an inverse relationship, but other measures like hospitalization count and death count also have an inverse relationship with income. Worse health outcomes demonstrate that lower-income populations are more negatively affected by the pandemic.
+"),
+                           
+                           
+                           
+                           
+                           
+                           h2("Conclusion"),
+                           p("The research questions derived from the analysis aim to investigate the correlations between income levels and COVID-19 case rates, hospitalization counts, and death rates, underscoring the need for public health measures that address these socioeconomic inequalities. 
+It can be concluded that there appears to be a socioeconomic disparity in the health outcomes wherein the lower income groups suggest a higher number of COVID-19 cases, hospitalizations, and deaths. The data shows a right-skewed income distribution, indicating that more people earn at the relatively lower end of the income spectrum, and these individuals are disproportionately affected by the pandemic. Visual data analysis suggests an inverse relationship between income levels and negative health outcomes, with lower-income individuals experiencing more severe effects of the pandemic.
+"), 
+                           column(4,
+                                  img(src = "https://r2.easyimg.io/x1748r3e8/coronavirus-black-background.png", 
+                                      height = "500px", 
+                                      width = "500px", 
+                                      style = "position: absolute; top: 50px; right: 10px;")
+                           )
 )
 
 
+
+
+
 # overall UI navbar
-ui <- navbarPage("INFO 201 Group BE-1",
+ui <- navbarPage("COVID-19 Case Numbers and Income Levels",
   overview_tab,
   viz_1_tab,
   viz_2_tab,
