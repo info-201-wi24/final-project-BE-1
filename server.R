@@ -15,6 +15,7 @@ server <- function(input, output){
     year_total_case_count <- filtered_income_levels_df %>%
       group_by(Year) %>%
       summarize(total_case_count = sum(case_count))
+    
     # line plot
     my_plot <- ggplot(year_total_case_count) +
       geom_line(mapping = aes(
